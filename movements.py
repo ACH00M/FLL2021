@@ -1,4 +1,3 @@
-
 # imports
 from spike import PrimeHub, LightMatrix, Button, StatusLight, ForceSensor, MotionSensor, Speaker, ColorSensor, App, DistanceSensor, Motor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
@@ -22,11 +21,11 @@ def move_forward(self, amount, unit, steering, speed):
     Improvements:
         - Use yaw value to correct direction automatically
         - Have acceleration and deceleration at begin and end of movement
-          for smoothness and avoid too much friction on wheels or wiggling
+        for smoothness and avoid too much friction on wheels or wiggling
     """
 
     hub.motion_sensor.reset_yaw_angle()
-    
+
     # steering is ignored, code only works with steering equals 0
     assert(steering == 0)
     # Code based in cm for simplicity, convert amount to cm first
@@ -41,14 +40,14 @@ def move_forward(self, amount, unit, steering, speed):
         raise Exception("Invalid unit")
 
     # Calculation for relating the number of rotations and wheel circumference
-    # Circumference of our wheel calculation        
+    # Circumference of our wheel calculation
     distance_per_rotation_cm = WHEEL_DIAMETER_CM * math.pi
 
     # This Solves for rotation blind-spot (only seeing left motor or only seeing right motor)
     # Creates an averaged degrees counted for left motor and right motor
     # _move_wrapper.pair.primary().get()[1] is internal access to Motor.get_degrees_counted
-    average_degrees_counted_LeftandRight = (self._move_wrapper.pair.primary().get()[1] +
-                                            self._move_wrapper.pair.secondary().get()[1]*-1) /2
+    average_degrees_counted_LeftandRight = math.fabs((self._move_wrapper.pair.primary().get()[1] +
+                                                self._move_wrapper.pair.secondary().get()[1]*-1) /2)
 
     #Plugs our inputed distance in cm into the ratio (360 is there to convert motor rotations to desired motor degrees)
     degreesNecessary = distance_cm / distance_per_rotation_cm * 360
@@ -62,18 +61,18 @@ def move_forward(self, amount, unit, steering, speed):
 
     while(average_degrees_counted_LeftandRight <= totalDegreesNecessary):
         #Continues to update average degrees
-        average_degrees_counted_LeftandRight = (self._move_wrapper.pair.primary().get()[1] +
-                                                self._move_wrapper.pair.secondary().get()[1]*-1) /2
+        average_degrees_counted_LeftandRight = math.fabs((self._move_wrapper.pair.primary().get()[1] +
+                                                self._move_wrapper.pair.secondary().get()[1]*-1) /2)
 
         #MOVE FORWARD
         #define angle based on gyro sensor
         deviation_angle = hub.motion_sensor.get_yaw_angle()
 
-        correction = deviation_angle*1
+        correction = deviation_angle*-1
 
         # if((not power_down) and (average_degrees_counted_LeftandRight >= (totalDegreesNecessary - degreesNecessary*0.3))):
-        #     power_down = True
-        #     speed //= 2
+        #    power_down = True
+        #    speed //= 2
         #Move forward (till it exits while loop) with correction as steering with our desired power
         self.start(correction, speed)
 
@@ -85,6 +84,6 @@ MotorPair.old_move = MotorPair.move
 MotorPair.move = move_forward
 
 # platooning trucks
-wheels.move(21, 'cm', 0, 40)
-wheels.old_move(7.01 * math.pi / 4, 'cm', 100, 20)
-wheels.move(60, 'cm', 0, 40)
+wheels.move(10, 'cm', 0, 40)
+#wheels.old_move(7.01 * math.pi / 4, 'cm', 100, 20)
+#wheels.move(60, 'cm', 0, 40)
